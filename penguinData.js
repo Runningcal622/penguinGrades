@@ -26,12 +26,12 @@ var drawLineChart = function(data)
   {
     var dataDay = getDataUpToDay(data, dayNum);
     theSum = dataDay.reduce(getSum);
-    listOfClassAverages.push(theSum/23);
+    listOfClassAverages.push(theSum/23*100);
   }
   console.log(listOfClassAverages);
 
   var width = 800;
-  var height = 800;
+  var height = 400;
   var body = d3.select("body");
   var svg  = body.append("svg")
               .attr("width",width)
@@ -44,20 +44,41 @@ var drawLineChart = function(data)
                  .domain([0,42])
                  .range([0,width]);
   var yScale = d3.scaleLinear()
-                 .domain([0,1])
+                 .domain([0,100])
                  .range([height,0]);
 
-  var line =d3.line()
-              .x(function(d,i){return xScale(i+1)})
-              .y(function(d){return yScale(d)});
+ var xAxis = d3.axisBottom(xScale);
+ var yAxis = d3.axisLeft(yScale);
 
+
+
+ svg.append("g").classed("yAxis",true)
+           .call(yAxis)
+           .attr("transform","translate("+(margins.left+15)+","+(margins.top)+")");
+ svg.append("g").classed("xAxis",true)
+           .call(xAxis)
+           .attr("transform","translate("+(margins.left+35)+","+(margins.top+height)+")");
+
+
+  var line =d3.line()
+              .x(function(d,i){
+                console.log(i+1);
+                return xScale(i+1)})
+              .y(function(d){
+                console.log(d);
+                return yScale(d)});
+
+
+  //listOfClassAverages.splice(6,35);
   svg.append("path")
+    .attr("transform","translate(20,0)")
     .datum(listOfClassAverages)
     .attr("class","line")
-    .attr("d",line);
+    .attr("d",line)
+    .attr("fill","none")
+    .attr("stroke","black");
 
-
-
+  
 
 
 
@@ -73,15 +94,81 @@ function getSum(total, num) {
   return total + num;
 }
 
-var getDataUpToDay = function(data,indexOfDay)
+
+
+var getPenguinGrade = function(penguin,indexOfDay)
 {
-  var listTotalGrades=[];
-  data.forEach(function(d,i)
+  d = penguin;
+  quizGradeForPenguin = getQuizzesForPenguin(d,indexOfDay);
+  var hwGradeForPenguin = 0;
+  // get homework grade
+  if (indexOfDay>0)
   {
-    // get quiz grade
+    hwGradeForPenguin = getHwForPenguin(d,indexOfDay);
+  }
+  else {
+    hwGradeForPenguin=-1;
+  }
+  // test grades
+  var testGradeForPenguin = 0;
+  if (indexOfDay>13)
+  {
+    testGradeForPenguin = getTestForPenguin(d,indexOfDay);
+  }
+  else {
+  testGradeForPenguin=-1;
+  }
+
+
+  // final
+  finalGrade=0;
+  if (indexOfDay===40)
+  {
+    finalGrade = getFinalForPenguin(d,indexOfDay);
+  }
+  else {
+    finalGrade=-1;
+  }
+
+
+  if (hwGradeForPenguin===-1)
+  {
+    return (quizGradeForPenguin);
+
+  }
+  else if(testGradeForPenguin===-1)
+  {
+    return ((quizGradeForPenguin*.5)+(hwGradeForPenguin*.5));
+
+  }
+  else if (finalGrade===-1)
+  {
+    if (indexOfDay<29)
+    {
+      return ((quizGradeForPenguin*.3)+(hwGradeForPenguin*.3)+(testGradeForPenguin*.4));
+
+    }
+    else
+    {
+      return ((quizGradeForPenguin*(3/14))+(hwGradeForPenguin*(3/14))+(testGradeForPenguin*(4/7)));
+    }
+  }
+  else
+  {
+    return ((quizGradeForPenguin*.15)+(hwGradeForPenguin*.15)+(testGradeForPenguin*.4)+ (finalGrade*.3));
+
+  }
+
+}
+
+
+
+var getQuizzesForPenguin = function(penguin,indexOfDay)
+{
+
     var quizGradeForPenguin = 0;
     var totalPoints = 0;
-    d.quizes.forEach(function(d)
+    penguin.quizes.forEach(function(d)
     {
       if (d.day-1<=indexOfDay)
       {
@@ -91,87 +178,61 @@ var getDataUpToDay = function(data,indexOfDay)
       }
     })
     quizGradeForPenguin/=totalPoints;
+    return quizGradeForPenguin;
+}
 
 
-    var hwGradeForPenguin = 0;
-    // get homework grade
-    if (indexOfDay>0)
+
+var getHwForPenguin = function(penguin,indexOfDay)
+{
+  totalPoints = 0;
+  hwGradeForPenguin=0;
+  penguin.homework.forEach(function(d)
+  {
+    if (d.day-1<=indexOfDay)
     {
-    totalPoints = 0;
-    d.homework.forEach(function(d)
+      hwGradeForPenguin+=d.grade;
+      totalPoints+=d.max;
+    }
+  })
+  hwGradeForPenguin/=totalPoints;
+  return hwGradeForPenguin;
+}
+
+
+var getFinalForPenguin = function(penguin,indexOfDay)
+{
+  return penguin.final[0].grade/penguin.final[0].max;
+}
+
+
+var getTestForPenguin = function(penguin, indexOfDay)
+{
+  var testGradeForPenguin = 0;
+  var totalPoints = 0;
+  penguin.test.forEach(function(d)
+  {
+    if (d.day-1<=indexOfDay)
     {
-      if (d.day-1<=indexOfDay)
-      {
-        hwGradeForPenguin+=d.grade;
-        totalPoints+=d.max;
-      }
-    })
-    hwGradeForPenguin/=totalPoints;
-
-
-    var testGradeForPenguin = 0;
+      testGradeForPenguin+=d.grade;
+      totalPoints+=d.max;
     }
-    else {
-      hwGradeForPenguin=-1;
-    }
-    // test grades
-
-    if (indexOfDay>13)
-    {
-      var testGradeForPenguin = 0;
-      var totalPoints = 0;
-      d.test.forEach(function(d)
-      {
-        if (d.day-1<=indexOfDay)
-        {
-          testGradeForPenguin+=d.grade;
-          totalPoints+=d.max;
-        }
-      })
-      testGradeForPenguin/=totalPoints;
-    }
-  else {
-    testGradeForPenguin=-1;
-  }
-
-    // final
-    finalGrade=0;
-    if (indexOfDay===40)
-    {
-      finalGrade=d.final[0].grade/d.final[0].max;
-    }
-    else {
-      finalGrade=-1;
-    }
+  })
+  testGradeForPenguin/=totalPoints;
+  return testGradeForPenguin;
+}
 
 
-    if (hwGradeForPenguin===-1)
-    {
-      listTotalGrades.push(quizGradeForPenguin);
 
-    }
-    else if(testGradeForPenguin===-1)
-    {
-      listTotalGrades.push((quizGradeForPenguin*.5)+(hwGradeForPenguin*.5));
 
-    }
-    else if (finalGrade===-1)
-    {
-      if (indexOfDay<29)
-      {
-        listTotalGrades.push((quizGradeForPenguin*.3)+(hwGradeForPenguin*.3)+(testGradeForPenguin*.4));
 
-      }
-      else
-      {
-        listTotalGrades.push((quizGradeForPenguin*(3/14))+(hwGradeForPenguin*(3/14))+(testGradeForPenguin*(4/7)));
-      }
-    }
-    else
-    {
-      listTotalGrades.push((quizGradeForPenguin*.15)+(hwGradeForPenguin*.15)+(testGradeForPenguin*.4)+ (finalGrade*.3));
-
-    }
+var getDataUpToDay = function(data,indexOfDay)
+{
+  var listTotalGrades=[];
+  data.forEach(function(d)
+  {
+    var eachPenguinGrade = getPenguinGrade(d,indexOfDay);
+    listTotalGrades.push(eachPenguinGrade);
   })
   return listTotalGrades;
 
