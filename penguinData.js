@@ -3,6 +3,8 @@ data.then(function(data){
   //var dataThrough2 = getDataUpToDay(data,0);
   //console.log(dataThrough2);
   drawLineChart(data);
+  //d3.selectAll("input").on("change", function(){
+    //update(parseInt(this.value,10), data);
 }
 ,
 function(err){
@@ -28,24 +30,24 @@ var drawLineChart = function(data)
     theSum = dataDay.reduce(getSum);
     listOfClassAverages.push(theSum/23*100);
   }
-  console.log(listOfClassAverages);
 
   var width = 800;
   var height = 400;
   var body = d3.select("body");
   var svg  = body.append("svg")
               .attr("width",width)
-              .attr("height",height);
+              .attr("height",height)
+              .classed("svg",true);
 
-  width = width - margins.left -margins.right;
-  height = height-margins.top-margins.bottom;
+  plotWidth = width - margins.left -margins.right;
+  plotHeight = height-margins.top-margins.bottom;
 
   var xScale = d3.scaleLinear()
                  .domain([0,42])
-                 .range([0,width]);
+                 .range([0,plotWidth]);
   var yScale = d3.scaleLinear()
                  .domain([0,100])
-                 .range([height,0]);
+                 .range([plotHeight,0]);
 
  var xAxis = d3.axisBottom(xScale);
  var yAxis = d3.axisLeft(yScale);
@@ -57,15 +59,13 @@ var drawLineChart = function(data)
            .attr("transform","translate("+(margins.left+15)+","+(margins.top)+")");
  svg.append("g").classed("xAxis",true)
            .call(xAxis)
-           .attr("transform","translate("+(margins.left+35)+","+(margins.top+height)+")");
+           .attr("transform","translate("+(margins.left+35)+","+(margins.top+plotHeight)+")");
 
 
   var line =d3.line()
               .x(function(d,i){
-                console.log(i+1);
                 return xScale(i+1)})
               .y(function(d){
-                console.log(d);
                 return yScale(d)});
 
 
@@ -78,14 +78,129 @@ var drawLineChart = function(data)
     .attr("fill","none")
     .attr("stroke","black");
 
-  
+    var svg2 = body.append("svg")
+                .attr("width",width)
+                .attr("height",height)
+                .classed("svg2",true);
+    var yScale2 = d3.scaleLinear()
+                    .domain([-100,100])
+                    .range([plotHeight,0]);
+
+    var listOfZeros = [];
+    for(var i=0; i<42;i++)
+    {
+        listOfZeros.push(0);
+    }
+    var line2 =d3.line()
+                .x(function(d,i){
+                  console.log(i+1);
+                  return xScale(i+1)})
+                .y(function(d){
+                  console.log(d);
+                  return yScale2(d)});
+
+      svg2.append("path")
+        .attr("transform","translate(20,"+(margins.top)+")")
+        .datum(listOfZeros)
+        .attr("class","line")
+        .attr("d",line2)
+        .attr("fill","none")
+        .attr("stroke","red");
+
+        var xAxis2 = d3.axisBottom(xScale);
+        var yAxis2 = d3.axisLeft(yScale2);
+
+        var colors = d3.scaleOrdinal(d3.schemeDark2);
+
+
+        svg2.append("g").classed("yAxis",true)
+                  .call(yAxis2)
+                  .attr("transform","translate("+(margins.left+15)+","+(margins.top)+")");
+        svg2.append("g").classed("xAxis",true)
+                  .call(xAxis2)
+                  .attr("transform","translate("+(margins.left+35)+","+(margins.top+plotHeight)+")");
+
+        drawDifferenceLineForPenguin(listOfClassAverages,data[0],colors)
+        drawDifferenceLineForPenguin(listOfClassAverages,data[7],colors)
+        drawDifferenceLineForPenguin(listOfClassAverages,data[11],colors)
+        drawDifferenceLineForPenguin(listOfClassAverages,data[22],colors)
+        drawDifferenceLineForPenguin(listOfClassAverages,data[1],colors)
+        drawDifferenceLineForPenguin(listOfClassAverages,data[9],colors)
+
+        d3.select("body").selectAll("input")
+          .data(data)
+          .enter()
+          .append("label")
+          .text(function(d){return d.picture;})
+          .append("input")
+          .attr("type","checkbox")
+          .attr("value", function(d) {return d.picture;})
 
 
 
+}
 
+var drawDifferenceLineForPenguin = function(listOfClassAverages,penguin,colors)
+{
+  var listOfPenguinGrades = [];
+  for (var dayNum=0;dayNum<41;dayNum++)
+  {
+    var dataDay = getPenguinGrade(penguin,dayNum);
+    listOfPenguinGrades.push(dataDay);
+  }
 
+  var listOfDifferences = [];
+  listOfPenguinGrades.forEach(function(d,i)
+  {
+      listOfDifferences.push((((d*100)/listOfClassAverages[i])-1)*100)
+  })
 
+  var width = 800;
+  var height = 400;
+  plotWidth = width - margins.left -margins.right;
+  plotHeight = height-margins.top-margins.bottom;
 
+  var xScale = d3.scaleLinear()
+                 .domain([0,42])
+                 .range([0,plotWidth]);
+
+ var yScale = d3.scaleLinear()
+                .domain([0,100])
+                .range([plotHeight,0]);
+
+ var yScale2 = d3.scaleLinear()
+                 .domain([-100,100])
+                 .range([plotHeight,0]);
+
+ var line =d3.line()
+             .x(function(d,i){
+               return xScale(i+1)})
+             .y(function(d){
+               return yScale(d*100)});
+
+  var line2 =d3.line()
+              .x(function(d,i){
+                console.log(i+1);
+                return xScale(i+1)})
+              .y(function(d){
+                console.log(d);
+                return yScale2(d)});
+
+  d3.select(".svg2").append("path")
+    .attr("transform","translate(20,"+(margins.top)+")")
+    .datum(listOfDifferences)
+    .attr("class","line")
+    .attr("d",line2)
+    .attr("fill","none")
+    .attr("stroke",function(d){return colors(penguin.picture)});
+
+   d3.select(".svg").append("path")
+     .attr("transform","translate(20,"+(margins.top)+")")
+     .datum(listOfPenguinGrades)
+     .attr("class","line")
+     .attr("d",line)
+     .attr("fill","none")
+     .attr("stroke",function(d){return colors(penguin.picture)});
 
 
 }
