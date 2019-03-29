@@ -2,8 +2,11 @@ var data = d3.json("classData.json");
 data.then(function(data){
   //var dataThrough2 = getDataUpToDay(data,0);
   //console.log(dataThrough2);
-  drawLineChart(data);
-  //d3.selectAll("input").on("change", function(){
+  var colors = d3.scaleOrdinal(d3.schemeDark2);
+  drawLineChart(data,colors);
+  d3.select("body").selectAll("input").on("change", "changeSVGS(data, this,colors)")
+  console.log(d3.select("body").selectAll("input"));//.on("click", changeSVGS(data, this, colors))
+  //function(){
     //update(parseInt(this.value,10), data);
 }
 ,
@@ -21,15 +24,10 @@ var margins ={
   right:10
 }
 
-var drawLineChart = function(data)
+var drawLineChart = function(data,colors)
 {
-  var listOfClassAverages = [];
-  for (var dayNum=0;dayNum<41;dayNum++)
-  {
-    var dataDay = getDataUpToDay(data, dayNum);
-    theSum = dataDay.reduce(getSum);
-    listOfClassAverages.push(theSum/23*100);
-  }
+  var listOfClassAverages = getClassAverages(data);
+
 
   var width = 800;
   var height = 400;
@@ -93,10 +91,10 @@ var drawLineChart = function(data)
     }
     var line2 =d3.line()
                 .x(function(d,i){
-                  console.log(i+1);
+                //  console.log(i+1);
                   return xScale(i+1)})
                 .y(function(d){
-                  console.log(d);
+                  //console.log(d);
                   return yScale2(d)});
 
       svg2.append("path")
@@ -110,7 +108,6 @@ var drawLineChart = function(data)
         var xAxis2 = d3.axisBottom(xScale);
         var yAxis2 = d3.axisLeft(yScale2);
 
-        var colors = d3.scaleOrdinal(d3.schemeDark2);
 
 
         svg2.append("g").classed("yAxis",true)
@@ -120,12 +117,17 @@ var drawLineChart = function(data)
                   .call(xAxis2)
                   .attr("transform","translate("+(margins.left+35)+","+(margins.top+plotHeight)+")");
 
-        drawDifferenceLineForPenguin(listOfClassAverages,data[0],colors)
-        drawDifferenceLineForPenguin(listOfClassAverages,data[7],colors)
-        drawDifferenceLineForPenguin(listOfClassAverages,data[11],colors)
-        drawDifferenceLineForPenguin(listOfClassAverages,data[22],colors)
-        drawDifferenceLineForPenguin(listOfClassAverages,data[1],colors)
-        drawDifferenceLineForPenguin(listOfClassAverages,data[9],colors)
+        drawLinesForPenguin(listOfClassAverages,data[0],colors)
+        drawLinesForPenguin(listOfClassAverages,data[7],colors)
+        drawLinesForPenguin(listOfClassAverages,data[11],colors)
+        drawLinesForPenguin(listOfClassAverages,data[22],colors)
+        drawLinesForPenguin(listOfClassAverages,data[1],colors)
+        drawLinesForPenguin(listOfClassAverages,data[9],colors)
+
+
+          d3.select("body").append("br");
+
+
 
         d3.select("body").selectAll("input")
           .data(data)
@@ -135,12 +137,43 @@ var drawLineChart = function(data)
           .append("input")
           .attr("type","checkbox")
           .attr("value", function(d) {return d.picture;})
-
-
+          .attr("index",function(d,i) {return i;});
 
 }
 
-var drawDifferenceLineForPenguin = function(listOfClassAverages,penguin,colors)
+var getClassAverages = function(data)
+{
+  var listOfClassAverages = [];
+  for (var dayNum=0;dayNum<41;dayNum++)
+  {
+    var dataDay = getDataUpToDay(data, dayNum);
+    theSum = dataDay.reduce(getSum);
+    listOfClassAverages.push(theSum/23*100);
+  }
+  return listOfClassAverages;
+}
+
+
+
+var changeSVGS = function(data, checkbox,colors)
+{
+  console.log("called change");
+
+  var peng = data[this.index];
+  var listOfClassAverages = getClassAverages(data);
+  if (checkbox.checked == true)
+  {
+    drawLinesForPenguin(listOfClassAverages,peng,colors);
+  }
+  else {
+    d3.selectAll("svg")
+      .select("#"+peng.picture)
+      .remove();
+  }
+}
+
+
+var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
 {
   var listOfPenguinGrades = [];
   for (var dayNum=0;dayNum<41;dayNum++)
@@ -180,10 +213,10 @@ var drawDifferenceLineForPenguin = function(listOfClassAverages,penguin,colors)
 
   var line2 =d3.line()
               .x(function(d,i){
-                console.log(i+1);
+                //console.log(i+1);
                 return xScale(i+1)})
               .y(function(d){
-                console.log(d);
+              //  console.log(d);
                 return yScale2(d)});
 
   d3.select(".svg2").append("path")
@@ -192,7 +225,8 @@ var drawDifferenceLineForPenguin = function(listOfClassAverages,penguin,colors)
     .attr("class","line")
     .attr("d",line2)
     .attr("fill","none")
-    .attr("stroke",function(d){return colors(penguin.picture)});
+    .attr("stroke",function(d){return colors(penguin.picture)})
+    .attr("id",function(d){return penguin.picture});
 
    d3.select(".svg").append("path")
      .attr("transform","translate(20,"+(margins.top)+")")
@@ -200,7 +234,9 @@ var drawDifferenceLineForPenguin = function(listOfClassAverages,penguin,colors)
      .attr("class","line")
      .attr("d",line)
      .attr("fill","none")
-     .attr("stroke",function(d){return colors(penguin.picture)});
+     .attr("stroke",function(d){return colors(penguin.picture)})
+     .attr("id",function(d){return penguin.picture});
+
 
 
 }
@@ -336,8 +372,6 @@ var getTestForPenguin = function(penguin, indexOfDay)
   testGradeForPenguin/=totalPoints;
   return testGradeForPenguin;
 }
-
-
 
 
 
