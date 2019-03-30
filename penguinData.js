@@ -1,13 +1,8 @@
 var data = d3.json("classData.json");
-data.then(function(data){
-  //var dataThrough2 = getDataUpToDay(data,0);
-  //console.log(dataThrough2);
-  var colors = d3.scaleOrdinal(d3.schemeDark2);
+var colors = d3.scaleOrdinal(d3.schemeDark2);
+data.then(function(data)
+{
   drawLineChart(data,colors);
-  d3.select("body").selectAll("input").on("change", "changeSVGS(data, this,colors)")
-  console.log(d3.select("body").selectAll("input"));//.on("click", changeSVGS(data, this, colors))
-  //function(){
-    //update(parseInt(this.value,10), data);
 }
 ,
 function(err){
@@ -117,14 +112,6 @@ var drawLineChart = function(data,colors)
                   .call(xAxis2)
                   .attr("transform","translate("+(margins.left+35)+","+(margins.top+plotHeight)+")");
 
-        drawLinesForPenguin(listOfClassAverages,data[0],colors)
-        drawLinesForPenguin(listOfClassAverages,data[7],colors)
-        drawLinesForPenguin(listOfClassAverages,data[11],colors)
-        drawLinesForPenguin(listOfClassAverages,data[22],colors)
-        drawLinesForPenguin(listOfClassAverages,data[1],colors)
-        drawLinesForPenguin(listOfClassAverages,data[9],colors)
-
-
           d3.select("body").append("br");
 
 
@@ -137,8 +124,56 @@ var drawLineChart = function(data,colors)
           .append("input")
           .attr("type","checkbox")
           .attr("value", function(d) {return d.picture;})
-          .attr("index",function(d,i) {return i;});
+          .attr("index",function(d,i) {return i;})
+          .attr("onchange", "changeSVGS(data,this,colors)");
 
+          //Histogram for class averages on day 15
+
+          var gradesDay15 = getDataUpToDay(data,16);
+
+
+          var svg3 = body.append("svg")
+                      .attr("width",width)
+                      .attr("height",height)
+                      .classed("svg3",true);
+
+          var xScaleHist = d3.scaleLinear()
+                         .domain([d3.min(gradesDay15), d3.max(gradesDay15)])
+                         .nice()
+                         .range([margins.left, width])
+
+         var binMaker = d3.histogram()
+                          .domain(xScale.domain())
+                          .thresholds(xScale.ticks(10));
+
+        var bins = binMaker(gradesDay15);
+
+        var percentage = function(d){
+          return d.length/gradesDay15.length;
+        }
+
+        var yScaleHist = d3.scaleLinear()
+                       .domain([0, d3.max(bins, function(d){ return percentage(d); })])
+                       .nice()
+                       .range([height, margins.top]);
+
+       var plot = svg3.append('g')
+                     .classed('plot', true)
+
+       var frequency_rects = plot.selectAll('rect')
+                                 .data(bins)
+                                 .enter()
+                                 .append('rect')
+                                 .attr('x', function(d){ return xScale(d.x0); })
+                                 .attr('y', function(d){ return yScale(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
+                                 .attr('width', function(d){ if (d.x1 == d.x0){
+                                                               return (xScale(d.x1) - xScale(d.x0))
+                                                             }
+
+                                                             return (xScale(d.x1 - 0.1) - xScale(d.x0))
+                                                           })
+                                 .attr('height', function(d){ return (height - yScale(percentage(d))); })
+                                 .attr('fill', 'blue');
 }
 
 var getClassAverages = function(data)
@@ -157,19 +192,24 @@ var getClassAverages = function(data)
 
 var changeSVGS = function(data, checkbox,colors)
 {
-  console.log("called change");
-
-  var peng = data[this.index];
-  var listOfClassAverages = getClassAverages(data);
-  if (checkbox.checked == true)
+  data.then(function(data)
   {
-    drawLinesForPenguin(listOfClassAverages,peng,colors);
-  }
-  else {
-    d3.selectAll("svg")
-      .select("#"+peng.picture)
-      .remove();
-  }
+    var peng = data[checkbox.getAttribute("index")];
+    var listOfClassAverages = getClassAverages(data);
+    if (checkbox.checked == true)
+    {
+      drawLinesForPenguin(listOfClassAverages,peng,colors);
+    }
+    else {
+      console.log("#"+peng.picture);
+      d3.selectAll("svg")
+        .select("#"+peng.picture.slice(0,-4))
+        .remove();
+      }
+  },
+  function(err){
+    console.log(err);
+  });
 }
 
 
@@ -226,7 +266,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .attr("d",line2)
     .attr("fill","none")
     .attr("stroke",function(d){return colors(penguin.picture)})
-    .attr("id",function(d){return penguin.picture});
+    .attr("id",function(d){return penguin.picture.slice(0,-4)});
 
    d3.select(".svg").append("path")
      .attr("transform","translate(20,"+(margins.top)+")")
@@ -235,7 +275,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
      .attr("d",line)
      .attr("fill","none")
      .attr("stroke",function(d){return colors(penguin.picture)})
-     .attr("id",function(d){return penguin.picture});
+     .attr("id",function(d){return penguin.picture.slice(0,-4)});
 
 
 
