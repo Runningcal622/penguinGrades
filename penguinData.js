@@ -4,7 +4,9 @@ data.then(function(data){
   //console.log(dataThrough2);
   var colors = d3.scaleOrdinal(d3.schemeDark2);
   drawLineChart(data,colors);
-  d3.select("body").selectAll("input").on("change", "changeSVGS(data, this,colors)")
+  d3.select("body").selectAll("input").on("change", function(d,i){
+    console.log(d3.select("#input"+i));
+    changeSVGS(data,this, colors);});
   console.log(d3.select("body").selectAll("input"));//.on("click", changeSVGS(data, this, colors))
   //function(){
     //update(parseInt(this.value,10), data);
@@ -117,12 +119,12 @@ var drawLineChart = function(data,colors)
                   .call(xAxis2)
                   .attr("transform","translate("+(margins.left+35)+","+(margins.top+plotHeight)+")");
 
-        drawLinesForPenguin(listOfClassAverages,data[0],colors)
-        drawLinesForPenguin(listOfClassAverages,data[7],colors)
-        drawLinesForPenguin(listOfClassAverages,data[11],colors)
-        drawLinesForPenguin(listOfClassAverages,data[22],colors)
-        drawLinesForPenguin(listOfClassAverages,data[1],colors)
-        drawLinesForPenguin(listOfClassAverages,data[9],colors)
+        // drawLinesForPenguin(listOfClassAverages,data[0],colors)
+        // drawLinesForPenguin(listOfClassAverages,data[7],colors)
+        // drawLinesForPenguin(listOfClassAverages,data[11],colors)
+        // drawLinesForPenguin(listOfClassAverages,data[22],colors)
+        // drawLinesForPenguin(listOfClassAverages,data[1],colors)
+        // drawLinesForPenguin(listOfClassAverages,data[9],colors)
 
 
           d3.select("body").append("br");
@@ -136,8 +138,9 @@ var drawLineChart = function(data,colors)
           .text(function(d){return d.picture;})
           .append("input")
           .attr("type","checkbox")
-          .attr("value", function(d) {return d.picture;})
-          .attr("index",function(d,i) {return i;});
+          .attr("value", function(d,i) {return i;})
+          .attr("name",function(d,i) {return d.picture;})
+          .attr("id", function(d,i){return "input"+i;});
 
 }
 
@@ -157,20 +160,23 @@ var getClassAverages = function(data)
 
 var changeSVGS = function(data, checkbox,colors)
 {
-  console.log("called change");
 
-  var peng = data[this.index];
+  var peng = data[checkbox.value];
   var listOfClassAverages = getClassAverages(data);
   if (checkbox.checked == true)
   {
+    console.log("called change   line"+peng.picture);
     drawLinesForPenguin(listOfClassAverages,peng,colors);
   }
   else {
-    d3.selectAll("svg")
-      .select("#"+peng.picture)
-      .remove();
+    document.getElementById("line"+peng.picture).remove();
+    document.getElementById("line"+peng.picture).remove();
+
   }
 }
+
+
+
 
 
 var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
@@ -224,18 +230,21 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .datum(listOfDifferences)
     .attr("class","line")
     .attr("d",line2)
+    .attr("value",function(d,i){return "line"+penguin.picture})
     .attr("fill","none")
     .attr("stroke",function(d){return colors(penguin.picture)})
-    .attr("id",function(d){return penguin.picture});
+    .attr("id",function(d){return "line"+penguin.picture});
+
 
    d3.select(".svg").append("path")
      .attr("transform","translate(20,"+(margins.top)+")")
      .datum(listOfPenguinGrades)
      .attr("class","line")
+     .attr("value",function(d,i){return "line"+i})
      .attr("d",line)
      .attr("fill","none")
      .attr("stroke",function(d){return colors(penguin.picture)})
-     .attr("id",function(d){return penguin.picture});
+     .attr("id",function(d){return "line"+penguin.picture});
 
 
 
