@@ -56,11 +56,7 @@ var drawLineChart = function(data,colors)
   var yScale = d3.scaleLinear()
                  .domain([0,100])
                  .range([plotHeight,0]);
- var ticks = xScale.ticks();
- ticks.push(1);
-
  var xAxis = d3.axisBottom(xScale);
- xAxis.tickValues(ticks);
 
  var yAxis = d3.axisLeft(yScale);
 
@@ -150,16 +146,18 @@ var drawLineChart = function(data,colors)
                       .attr("width",width)
                       .attr("height",height)
                       .classed("svg3",true);
+
+
           var xScaleHist = d3.scaleLinear()
-                         .domain([d3.min(gradesDay15), d3.max(gradesDay15)])
-                         .nice()
-                         .range([margins.left, width])
-          var numBars=6;
+                         .domain([0,1])//d3.min(gradesDay15), d3.max(gradesDay15)])
+                         //.nice()
+                         .range([0, plotWidth])
+          var numBars=5;
          var binMaker = d3.histogram()
                           .domain(xScaleHist.domain())
                           .thresholds(numBars);
 
-        var barWidth=plotWidth/numBars;
+        var barWidth=width/numBars-2;
         var bins = binMaker(gradesDay15);
         var percentage = function(d){
           return d.length/gradesDay15.length;
@@ -168,7 +166,7 @@ var drawLineChart = function(data,colors)
         var yScaleHist = d3.scaleLinear()
                        .domain([0, d3.max(bins, function(d){ return percentage(d); })])
                        .nice()
-                       .range([height, margins.top]);
+                       .range([plotHeight, margins.top]);
 
 
       console.log(bins);
@@ -182,13 +180,23 @@ var drawLineChart = function(data,colors)
                          .attr('x', function(d,i){ return i*barWidth  ; })
                          .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
                          .attr('width', function(d){
-                               return (barWidth-5)
+                               return (barWidth-1)
                              })
                          .attr('height', function(d){
                            console.log(percentage(d));
-                           return (height - yScaleHist(percentage(d))); })
+                           return (plotHeight - yScaleHist(percentage(d))); })
                          .attr('fill', 'blue');
 
+      var xAxis = d3.axisBottom(xScaleHist);
+      var yAxis = d3.axisLeft(yScaleHist);
+      plot.attr("transform","translate(15,10)")
+
+      svg3.append("g").classed("yAxis",true)
+                .call(yAxis)
+                .attr("transform","translate("+(margins.left+20)+","+(margins.top)+")");
+      svg3.append("g").classed("xAxis",true)
+                .call(xAxis)
+                .attr("transform","translate("+(margins.left+10)+","+(margins.top+plotHeight+5)+")");
 
 
 
@@ -198,6 +206,7 @@ var changeToDay = function(data)
 {
   console.log("called");
   var input = document.getElementById("newDay").value;
+  console.log(input);
   updateScreen(input,data);
   document.getElementById("newDay").value = "";
 }
@@ -207,9 +216,8 @@ var changeToDay = function(data)
 var updateScreen = function(index, data)
 {
             console.log(index);
-            var gradesDay = getDataUpToDay(data, index+1);
+            var gradesDay = getDataUpToDay(data, parseInt(index)+1);
             console.log(gradesDay);
-            d3.select("body").append("br");
             body = d3.select("body");
             var width = 800;
             var height = 400;
@@ -219,15 +227,15 @@ var updateScreen = function(index, data)
 
             var svg3 = body.select(".svg3")
             var xScaleHist = d3.scaleLinear()
-                           .domain([d3.min(gradesDay), d3.max(gradesDay)])
+                           .domain([0,1])//d3.min(gradesDay), d3.max(gradesDay)])
                            .nice()
-                           .range([margins.left, width])
-            var numBars=6;
+                           .range([0, plotWidth])
+            var numBars=5;
            var binMaker = d3.histogram()
                             .domain(xScaleHist.domain())
                             .thresholds(numBars);
 
-          var barWidth=plotWidth/numBars;
+          var barWidth=width/numBars-2;
           var bins = binMaker(gradesDay);
           var percentage = function(d){
             return d.length/gradesDay.length;
@@ -236,22 +244,24 @@ var updateScreen = function(index, data)
           var yScaleHist = d3.scaleLinear()
                          .domain([0, d3.max(bins, function(d){ return percentage(d); })])
                          .nice()
-                         .range([height, margins.top]);
+                         .range([plotHeight, margins.top]);
 
 
         console.log(bins);
          var plot = svg3.select('g');
          var frequency_rects = plot.selectAll('rect')
                            .data(bins)
-                           .attr('x', function(d,i){ return i*barWidth  ; })
+                           .attr('x', function(d,i){ return i*barWidth; })
                            .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
                            .attr('width', function(d){
-                                 return (barWidth-5)
+                                 return (barWidth-1)
                                })
                            .attr('height', function(d){
                              console.log(percentage(d));
-                             return (height - yScaleHist(percentage(d))); })
+                             return (plotHeight - yScaleHist(percentage(d))); })
                            .attr('fill', 'blue');
+
+        plot.attr("transform","translate(15,10)")
 
 
 
@@ -411,7 +421,7 @@ var getPenguinGrade = function(penguin,indexOfDay)
   else {
     finalGrade=-1;
   }
-
+  console.log(indexOfDay);
 
   if (hwGradeForPenguin===-1)
   {
@@ -420,11 +430,13 @@ var getPenguinGrade = function(penguin,indexOfDay)
   }
   else if(testGradeForPenguin===-1)
   {
+    console.log("called 2 part grade");
     return ((quizGradeForPenguin*.5)+(hwGradeForPenguin*.5));
 
   }
   else if (finalGrade===-1)
   {
+    console.log("called 3 part grade");
     if (indexOfDay<29)
     {
       return ((quizGradeForPenguin*.3)+(hwGradeForPenguin*.3)+(testGradeForPenguin*.4));
