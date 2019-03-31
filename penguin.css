@@ -7,3 +7,21 @@ svg{
   float:left;
   clear:left;
 }
+input[type=checkbox]{
+  display:none;
+}
+form{
+  display:block;
+  float:left;
+  clear:left;
+}
+img{
+  padding-left: 100px;
+  padding-right: 10px;
+  border: solid black 2px;
+}
+.pictures{
+  position:relative;
+  left:900px;
+  position:fixed;
+}

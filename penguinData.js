@@ -5,7 +5,6 @@ data.then(function(data){
   var colors = d3.scaleOrdinal(d3.schemeDark2);
   drawLineChart(data,colors);
   d3.select("body").selectAll("input").on("change", function(d,i){
-    console.log(d3.select("#input"+i));
     changeSVGS(data,this, colors);});
 
   d3.select("body").append("form")
@@ -124,21 +123,55 @@ var drawLineChart = function(data,colors)
           d3.select("body").append("br");
 
 
+          var checkBoxList=[]
 
-        d3.select("body").selectAll("input")
+        d3.select("body").append("g").selectAll("input")
           .data(data)
           .enter()
-          .append("label")
-          .text(function(d){return d.picture;})
           .append("input")
           .attr("type","checkbox")
           .attr("value", function(d,i) {return i;})
           .attr("name",function(d,i) {return d.picture;})
-          .attr("id", function(d,i){return "input"+i;});
+          .attr("id", function(d,i){return "input"+i;})
+
+          .each(function(d){checkBoxList.push(this);});
+
+
+        var checkboxes = d3.selectAll("input");
+        console.log(checkBoxList);
+        d3.select("body")
+        .append("g")
+        .classed("pictures",true)
+          .selectAll("img")
+          .data(checkBoxList)
+          .enter()
+          .append("img")
+          .attr("height",65)
+          .attr("width",65)
+          .attr("src", function(d,i){
+            console.log(d);
+            return "penguins/"+d.name;
+          })
+          .attr("alt","Penguin Picture")
+          .on("click",function(d,i){
+            if (d.checked==false){
+              d.checked=true;
+              changeSVGS(data,d,colors);
+              this.style.borderColor=colors(d.name);
+            }
+            else{
+              d.checked=false;
+              changeSVGS(data,d,colors);
+              this.style.borderColor="black";
+
+            }
+          })
+          .attr("transform","translate(120,0)");
+
 
 
           var gradesDay15 = getDataUpToDay(data,16);
-          console.log(gradesDay15);
+        //  console.log(gradesDay15);
           d3.select("body").append("br");
 
 
@@ -169,7 +202,7 @@ var drawLineChart = function(data,colors)
                        .range([plotHeight, margins.top]);
 
 
-      console.log(bins);
+      //console.log(bins);
        var plot = svg3.append('g')
        .classed('plot', true);
 
@@ -183,7 +216,7 @@ var drawLineChart = function(data,colors)
                                return (barWidth-1)
                              })
                          .attr('height', function(d){
-                           console.log(percentage(d));
+                          // console.log(percentage(d));
                            return (plotHeight - yScaleHist(percentage(d))); })
                          .attr('fill', 'blue');
 
@@ -204,9 +237,9 @@ var drawLineChart = function(data,colors)
 
 var changeToDay = function(data)
 {
-  console.log("called");
+//  console.log("called");
   var input = document.getElementById("newDay").value;
-  console.log(input);
+  //console.log(input);
   updateScreen(input,data);
   document.getElementById("newDay").value = "";
 }
@@ -215,9 +248,9 @@ var changeToDay = function(data)
 
 var updateScreen = function(index, data)
 {
-            console.log(index);
+          //  console.log(index);
             var gradesDay = getDataUpToDay(data, parseInt(index)+1);
-            console.log(gradesDay);
+          //  console.log(gradesDay);
             body = d3.select("body");
             var width = 800;
             var height = 400;
@@ -235,7 +268,7 @@ var updateScreen = function(index, data)
                             .domain(xScaleHist.domain())
                             .thresholds(numBars);
 
-          var barWidth=width/numBars-2;
+          var barWidth=width/numBars-3;
           var bins = binMaker(gradesDay);
           var percentage = function(d){
             return d.length/gradesDay.length;
@@ -247,7 +280,7 @@ var updateScreen = function(index, data)
                          .range([plotHeight, margins.top]);
 
 
-        console.log(bins);
+      //  console.log(bins);
          var plot = svg3.select('g');
          var frequency_rects = plot.selectAll('rect')
                            .data(bins)
@@ -257,7 +290,7 @@ var updateScreen = function(index, data)
                                  return (barWidth-1)
                                })
                            .attr('height', function(d){
-                             console.log(percentage(d));
+                          //   console.log(percentage(d));
                              return (plotHeight - yScaleHist(percentage(d))); })
                            .attr('fill', 'blue');
 
@@ -290,7 +323,7 @@ var changeSVGS = function(data, checkbox,colors)
   var listOfClassAverages = getClassAverages(data);
   if (checkbox.checked == true)
   {
-    console.log("called change   line"+peng.picture);
+  //  console.log("called change   line"+peng.picture);
     drawLinesForPenguin(listOfClassAverages,peng,colors);
   }
   else {
@@ -350,10 +383,10 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
 
   var line2 =d3.line()
               .x(function(d,i){
-                console.log(i+1);
+        //        console.log(i+1);
                 return xScale(i+1)})
               .y(function(d){
-                console.log(d);
+      //          console.log(d);
                 return yScale2(d)});
 
   d3.select(".svg2").append("path")
@@ -421,7 +454,7 @@ var getPenguinGrade = function(penguin,indexOfDay)
   else {
     finalGrade=-1;
   }
-  console.log(indexOfDay);
+//  console.log(indexOfDay);
 
   if (hwGradeForPenguin===-1)
   {
@@ -430,13 +463,13 @@ var getPenguinGrade = function(penguin,indexOfDay)
   }
   else if(testGradeForPenguin===-1)
   {
-    console.log("called 2 part grade");
+  //  console.log("called 2 part grade");
     return ((quizGradeForPenguin*.5)+(hwGradeForPenguin*.5));
 
   }
   else if (finalGrade===-1)
   {
-    console.log("called 3 part grade");
+  //  console.log("called 3 part grade");
     if (indexOfDay<29)
     {
       return ((quizGradeForPenguin*.3)+(hwGradeForPenguin*.3)+(testGradeForPenguin*.4));
