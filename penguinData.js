@@ -7,9 +7,17 @@ data.then(function(data){
   d3.select("body").selectAll("input").on("change", function(d,i){
     console.log(d3.select("#input"+i));
     changeSVGS(data,this, colors);});
-  console.log(d3.select("body").selectAll("input"));//.on("click", changeSVGS(data, this, colors))
-  //function(){
-    //update(parseInt(this.value,10), data);
+
+  d3.select("body").append("form")
+    .append("input")
+    .attr("type","text")
+    .attr("id","newDay")
+    .text("Change to day: ");
+
+  d3.select("form").append("button")
+    .text("Go To")
+    .attr("type","button")
+    .on("click",function(d,i){changeToDay(data);});
 }
 ,
 function(err){
@@ -43,13 +51,17 @@ var drawLineChart = function(data,colors)
   plotHeight = height-margins.top-margins.bottom;
 
   var xScale = d3.scaleLinear()
-                 .domain([0,42])
+                 .domain([1,42])
                  .range([0,plotWidth]);
   var yScale = d3.scaleLinear()
                  .domain([0,100])
                  .range([plotHeight,0]);
+ var ticks = xScale.ticks();
+ ticks.push(1);
 
  var xAxis = d3.axisBottom(xScale);
+ xAxis.tickValues(ticks);
+
  var yAxis = d3.axisLeft(yScale);
 
 
@@ -83,7 +95,7 @@ var drawLineChart = function(data,colors)
                 .attr("height",height)
                 .classed("svg2",true);
     var yScale2 = d3.scaleLinear()
-                    .domain([-100,100])
+                    .domain([-30,60])
                     .range([plotHeight,0]);
 
     var listOfZeros = [];
@@ -99,13 +111,6 @@ var drawLineChart = function(data,colors)
                   //console.log(d);
                   return yScale2(d)});
 
-      svg2.append("path")
-        .attr("transform","translate(20,"+(margins.top)+")")
-        .datum(listOfZeros)
-        .attr("class","line")
-        .attr("d",line2)
-        .attr("fill","none")
-        .attr("stroke","red");
 
         var xAxis2 = d3.axisBottom(xScale);
         var yAxis2 = d3.axisLeft(yScale2);
@@ -118,13 +123,6 @@ var drawLineChart = function(data,colors)
         svg2.append("g").classed("xAxis",true)
                   .call(xAxis2)
                   .attr("transform","translate("+(margins.left+35)+","+(margins.top+plotHeight)+")");
-
-        // drawLinesForPenguin(listOfClassAverages,data[0],colors)
-        // drawLinesForPenguin(listOfClassAverages,data[7],colors)
-        // drawLinesForPenguin(listOfClassAverages,data[11],colors)
-        // drawLinesForPenguin(listOfClassAverages,data[22],colors)
-        // drawLinesForPenguin(listOfClassAverages,data[1],colors)
-        // drawLinesForPenguin(listOfClassAverages,data[9],colors)
 
 
           d3.select("body").append("br");
@@ -142,7 +140,124 @@ var drawLineChart = function(data,colors)
           .attr("name",function(d,i) {return d.picture;})
           .attr("id", function(d,i){return "input"+i;});
 
+
+          var gradesDay15 = getDataUpToDay(data,16);
+          console.log(gradesDay15);
+          d3.select("body").append("br");
+
+
+          var svg3 = body.append("svg")
+                      .attr("width",width)
+                      .attr("height",height)
+                      .classed("svg3",true);
+          var xScaleHist = d3.scaleLinear()
+                         .domain([d3.min(gradesDay15), d3.max(gradesDay15)])
+                         .nice()
+                         .range([margins.left, width])
+          var numBars=6;
+         var binMaker = d3.histogram()
+                          .domain(xScaleHist.domain())
+                          .thresholds(numBars);
+
+        var barWidth=plotWidth/numBars;
+        var bins = binMaker(gradesDay15);
+        var percentage = function(d){
+          return d.length/gradesDay15.length;
+        }
+
+        var yScaleHist = d3.scaleLinear()
+                       .domain([0, d3.max(bins, function(d){ return percentage(d); })])
+                       .nice()
+                       .range([height, margins.top]);
+
+
+      console.log(bins);
+       var plot = svg3.append('g')
+       .classed('plot', true);
+
+       var frequency_rects = plot.selectAll('rect')
+                         .data(bins)
+                         .enter()
+                         .append('rect')
+                         .attr('x', function(d,i){ return i*barWidth  ; })
+                         .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
+                         .attr('width', function(d){
+                               return (barWidth-5)
+                             })
+                         .attr('height', function(d){
+                           console.log(percentage(d));
+                           return (height - yScaleHist(percentage(d))); })
+                         .attr('fill', 'blue');
+
+
+
+
 }
+
+var changeToDay = function(data)
+{
+  console.log("called");
+  var input = document.getElementById("newDay").value;
+  updateScreen(input,data);
+  document.getElementById("newDay").value = "";
+}
+
+
+
+var updateScreen = function(index, data)
+{
+            console.log(index);
+            var gradesDay = getDataUpToDay(data, index+1);
+            console.log(gradesDay);
+            d3.select("body").append("br");
+            body = d3.select("body");
+            var width = 800;
+            var height = 400;
+            plotWidth = width - margins.left -margins.right;
+            plotHeight = height-margins.top-margins.bottom;
+
+
+            var svg3 = body.select(".svg3")
+            var xScaleHist = d3.scaleLinear()
+                           .domain([d3.min(gradesDay), d3.max(gradesDay)])
+                           .nice()
+                           .range([margins.left, width])
+            var numBars=6;
+           var binMaker = d3.histogram()
+                            .domain(xScaleHist.domain())
+                            .thresholds(numBars);
+
+          var barWidth=plotWidth/numBars;
+          var bins = binMaker(gradesDay);
+          var percentage = function(d){
+            return d.length/gradesDay.length;
+          }
+
+          var yScaleHist = d3.scaleLinear()
+                         .domain([0, d3.max(bins, function(d){ return percentage(d); })])
+                         .nice()
+                         .range([height, margins.top]);
+
+
+        console.log(bins);
+         var plot = svg3.select('g');
+         var frequency_rects = plot.selectAll('rect')
+                           .data(bins)
+                           .attr('x', function(d,i){ return i*barWidth  ; })
+                           .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
+                           .attr('width', function(d){
+                                 return (barWidth-5)
+                               })
+                           .attr('height', function(d){
+                             console.log(percentage(d));
+                             return (height - yScaleHist(percentage(d))); })
+                           .attr('fill', 'blue');
+
+
+
+}
+
+
 
 var getClassAverages = function(data)
 {
@@ -191,7 +306,13 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
   var listOfDifferences = [];
   listOfPenguinGrades.forEach(function(d,i)
   {
-      listOfDifferences.push((((d*100)/listOfClassAverages[i])-1)*100)
+      if (i===0)
+      {
+        listOfDifferences.push(0)
+      }
+      else{
+        listOfDifferences.push((listOfPenguinGrades[i]/listOfPenguinGrades[i-1])-1)
+      }
   })
 
   var width = 800;
@@ -200,7 +321,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
   plotHeight = height-margins.top-margins.bottom;
 
   var xScale = d3.scaleLinear()
-                 .domain([0,42])
+                 .domain([1,42])
                  .range([0,plotWidth]);
 
  var yScale = d3.scaleLinear()
@@ -208,7 +329,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
                 .range([plotHeight,0]);
 
  var yScale2 = d3.scaleLinear()
-                 .domain([-100,100])
+                 .domain([-.3,.6])
                  .range([plotHeight,0]);
 
  var line =d3.line()
@@ -219,14 +340,14 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
 
   var line2 =d3.line()
               .x(function(d,i){
-                //console.log(i+1);
+                console.log(i+1);
                 return xScale(i+1)})
               .y(function(d){
-              //  console.log(d);
+                console.log(d);
                 return yScale2(d)});
 
   d3.select(".svg2").append("path")
-    .attr("transform","translate(20,"+(margins.top)+")")
+    .attr("transform","translate(45,"+(margins.top)+")")
     .datum(listOfDifferences)
     .attr("class","line")
     .attr("d",line2)
@@ -234,6 +355,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .attr("fill","none")
     .attr("stroke",function(d){return colors(penguin.picture)})
     .attr("id",function(d){return "line"+penguin.picture});
+    //.attr("transform","translate(0,0)");
 
 
    d3.select(".svg").append("path")
