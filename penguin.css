@@ -1,11 +1,12 @@
-.body{
-
+body{
+  background-color: lightgray;
 }
 
 svg{
   display:block;
   float:left;
   clear:left;
+  padding-top: 30px;
 }
 input[type=checkbox]{
   display:none;

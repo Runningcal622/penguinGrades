@@ -8,10 +8,10 @@ data.then(function(data){
     changeSVGS(data,this, colors);});
 
   d3.select("body").append("form")
+    .text("Change to day between 1 and 41: ")
     .append("input")
     .attr("type","text")
-    .attr("id","newDay")
-    .text("Change to day: ");
+    .attr("id","newDay");
 
   d3.select("form").append("button")
     .text("Go To")
@@ -27,9 +27,9 @@ day=1;
 index=0;
 
 var margins ={
-  top:10,
+  top:20,
   bottom:50,
-  left:10,
+  left:50,
   right:10
 }
 
@@ -45,6 +45,21 @@ var drawLineChart = function(data,colors)
               .attr("width",width)
               .attr("height",height)
               .classed("svg",true);
+
+  var title = svg.append("text")
+          .text("Average Grade Over Time")
+          .attr("x",((width/2)-30))
+          .attr("y", margins.top-5);
+  var yLabel = svg.append("text")
+  .text("Cumulative Grade Percentage")
+  .attr("x",margins.left-45)
+  .attr("y", (height+50)/2)
+  .attr("transform","translate(15,0) rotate(-90,"+(margins.left-45)+","+((height+50)/2)+")");
+
+  var xLabel = svg.append("text")
+  .text("Day")
+  .attr("x",(width/2)+50)
+  .attr("y", (height-10));
 
   plotWidth = width - margins.left -margins.right;
   plotHeight = height-margins.top-margins.bottom;
@@ -78,12 +93,16 @@ var drawLineChart = function(data,colors)
 
   //listOfClassAverages.splice(6,35);
   svg.append("path")
-    .attr("transform","translate(20,0)")
+    .attr("transform","translate(80,0)")
     .datum(listOfClassAverages)
     .attr("class","line")
     .attr("d",line)
     .attr("fill","none")
-    .attr("stroke","black");
+    .attr("stroke","black")
+    .attr("stroke-width",3);
+
+
+
 
     var svg2 = body.append("svg")
                 .attr("width",width)
@@ -92,6 +111,21 @@ var drawLineChart = function(data,colors)
     var yScale2 = d3.scaleLinear()
                     .domain([-30,60])
                     .range([plotHeight,0]);
+
+    var title = svg2.append("text")
+            .text("Change Ratio In Comparison To Previous Day")
+            .attr("x",((width/2)-30))
+            .attr("y", margins.top-5);
+    var yLabel = svg2.append("text")
+    .text("Percent Difference")
+    .attr("x",margins.left-45)
+    .attr("y", (height+50)/2)
+    .attr("transform","translate(15,0) rotate(-90,"+(margins.left-45)+","+((height+50)/2)+")");
+
+    var xLabel = svg2.append("text")
+    .text("Day")
+    .attr("x",(width/2)+50)
+    .attr("y", (height-10));
 
     var listOfZeros = [];
     for(var i=0; i<42;i++)
@@ -181,6 +215,23 @@ var drawLineChart = function(data,colors)
                       .classed("svg3",true);
 
 
+
+        var title = svg3.append("text")
+                .text("Cumulative Grade Distribution For Day")
+                .attr("x",((width/2)-30))
+                .attr("y", margins.top-5);
+        var yLabel = svg3.append("text")
+        .text("Proportion of Students")
+        .attr("x",margins.left-45)
+        .attr("y", (height+50)/2)
+        .attr("transform","translate(15,0) rotate(-90,"+(margins.left-45)+","+((height+50)/2)+")");
+
+        var xLabel = svg3.append("text")
+        .text("Grade")
+        .attr("x",(width/2)+50)
+        .attr("y", (height-10));
+
+
           var xScaleHist = d3.scaleLinear()
                          .domain([0,1])//d3.min(gradesDay15), d3.max(gradesDay15)])
                          //.nice()
@@ -222,7 +273,7 @@ var drawLineChart = function(data,colors)
 
       var xAxis = d3.axisBottom(xScaleHist);
       var yAxis = d3.axisLeft(yScaleHist);
-      plot.attr("transform","translate(15,10)")
+      plot.attr("transform","translate(45,10)")
 
       svg3.append("g").classed("yAxis",true)
                 .call(yAxis)
@@ -230,8 +281,6 @@ var drawLineChart = function(data,colors)
       svg3.append("g").classed("xAxis",true)
                 .call(xAxis)
                 .attr("transform","translate("+(margins.left+10)+","+(margins.top+plotHeight+5)+")");
-
-
 
 }
 
@@ -284,6 +333,9 @@ var updateScreen = function(index, data)
          var plot = svg3.select('g');
          var frequency_rects = plot.selectAll('rect')
                            .data(bins)
+                           .transition()
+                            .duration(1000)
+                            .ease(d3.easeCubic)
                            .attr('x', function(d,i){ return i*barWidth; })
                            .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
                            .attr('width', function(d){
@@ -294,7 +346,7 @@ var updateScreen = function(index, data)
                              return (plotHeight - yScaleHist(percentage(d))); })
                            .attr('fill', 'blue');
 
-        plot.attr("transform","translate(15,10)")
+        plot.attr("transform","translate(55,10)")
 
 
 
@@ -390,7 +442,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
                 return yScale2(d)});
 
   d3.select(".svg2").append("path")
-    .attr("transform","translate(45,"+(margins.top)+")")
+    .attr("transform","translate(85,"+(margins.top)+")")
     .datum(listOfDifferences)
     .attr("class","line")
     .attr("d",line2)
@@ -402,7 +454,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
 
 
    d3.select(".svg").append("path")
-     .attr("transform","translate(20,"+(margins.top)+")")
+     .attr("transform","translate(80,"+(margins.top)+")")
      .datum(listOfPenguinGrades)
      .attr("class","line")
      .attr("value",function(d,i){return "line"+i})
