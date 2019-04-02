@@ -1,0 +1,41 @@
+body{
+  background-color: lightgray;
+}
+
+svg{
+  display:block;
+  float:left;
+  clear:left;
+  padding-top: 30px;
+}
+input[type=checkbox]{
+  display:none;
+}
+form{
+  display:block;
+  float:left;
+  clear:left;
+}
+img{
+  padding-left: 100px;
+  padding-right: 10px;
+  border: solid black 2px;
+}
+.pictures{
+  position:relative;
+  left:900px;
+  position:fixed;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    width: 60px;
+    height: 28px;
+    padding: 2px;
+    font: 12px sans-serif;
+    background: lightsteelblue;
+    border: 0px;
+    border-radius: 8px;
+    pointer-events: none;
+}
