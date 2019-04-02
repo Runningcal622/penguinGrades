@@ -253,8 +253,9 @@ var drawLineChart = function(data,colors)
               checkBoxList.forEach(function(d,i)
               {
                 d.checked=true;
+                console.log(d3.select("#"+d.name.slice(0,-10)))
                 changeSVGS(data,d,colors);
-                d3.select(d.name)
+                d3.select("#"+d.name.slice(0,-10)).style.borderColor=colors(d.name);
 
               })
             }
