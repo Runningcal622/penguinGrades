@@ -203,7 +203,6 @@ var drawLineChart = function(data,colors)
 
 
         var checkboxes = d3.selectAll("input");
-        console.log(checkBoxList);
         d3.select("body")
         .append("g")
         .classed("pictures",true)
@@ -233,6 +232,47 @@ var drawLineChart = function(data,colors)
             }
           })
           .attr("transform","translate(120,0)");
+
+
+
+
+
+          d3.select(".pictures")
+          .append("img")
+          .attr("id","Whole Class")
+          .attr("height",65)
+          .attr("width",65)
+          .attr("src", "penguins/class.png")
+          .attr("alt","Class of Penguins")
+          .on("click",function(d,i){
+
+            if (this.selected==false || this.selected==undefined)
+            {
+              console.log("false");
+              this.selected=true;
+              checkBoxList.forEach(function(d,i)
+              {
+                d.checked=true;
+                changeSVGS(data,d,colors);
+                d3.select(d.name)
+
+              })
+            }
+
+            else{
+              console.log("true");
+
+              this.selected=false;
+              checkBoxList.forEach(function(d,i)
+              {
+                d.checked=false;
+                changeSVGS(data,d,colors);
+              })
+
+            }
+          })
+
+
 
 
 
@@ -266,14 +306,14 @@ var drawLineChart = function(data,colors)
 
           var xScaleHist = d3.scaleLinear()
                          .domain([0,1])//d3.min(gradesDay15), d3.max(gradesDay15)])
-                         //.nice()
+                         .nice()
                          .range([0, plotWidth])
           var numBars=5;
          var binMaker = d3.histogram()
                           .domain(xScaleHist.domain())
                           .thresholds(numBars);
 
-        var barWidth=width/numBars-2;
+        var barWidth=plotWidth/numBars;
         var bins = binMaker(gradesDay15);
         var percentage = function(d){
           return d.length/gradesDay15.length;
@@ -293,7 +333,7 @@ var drawLineChart = function(data,colors)
                          .data(bins)
                          .enter()
                          .append('rect')
-                         .attr('x', function(d,i){ return i*barWidth  ; })
+                         .attr('x', function(d,i){ return xScaleHist((i)/numBars)  ; })
                          .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
                          .attr('width', function(d){
                                return (barWidth-1)
@@ -305,14 +345,14 @@ var drawLineChart = function(data,colors)
 
       var xAxis = d3.axisBottom(xScaleHist);
       var yAxis = d3.axisLeft(yScaleHist);
-      plot.attr("transform","translate(45,10)")
+      plot.attr("transform","translate("+(margins.left+20)+",10)")
 
       svg3.append("g").classed("yAxis",true)
                 .call(yAxis)
                 .attr("transform","translate("+(margins.left+20)+","+(margins.top)+")");
       svg3.append("g").classed("xAxis",true)
                 .call(xAxis)
-                .attr("transform","translate("+(margins.left+10)+","+(margins.top+plotHeight+5)+")");
+                .attr("transform","translate("+(margins.left+20)+","+(margins.top+plotHeight+5)+")");
 
 }
 
@@ -349,7 +389,7 @@ var updateScreen = function(index, data)
                             .domain(xScaleHist.domain())
                             .thresholds(numBars);
 
-          var barWidth=width/numBars-3;
+          var barWidth=plotWidth/numBars;
           var bins = binMaker(gradesDay);
           var percentage = function(d){
             return d.length/gradesDay.length;
@@ -368,7 +408,7 @@ var updateScreen = function(index, data)
                            .transition()
                             .duration(1000)
                             .ease(d3.easeCubic)
-                           .attr('x', function(d,i){ return i*barWidth; })
+                           .attr('x', function(d,i){ return xScaleHist((i)/numBars); })
                            .attr('y', function(d){ return yScaleHist(percentage(d))}) // Percentage returns the amount of values in each bin divided by the total amount of the array.
                            .attr('width', function(d){
                                  return (barWidth-1)
@@ -378,13 +418,9 @@ var updateScreen = function(index, data)
                              return (plotHeight - yScaleHist(percentage(d))); })
                            .attr('fill', 'blue');
 
-        plot.attr("transform","translate(55,10)")
-
-
+        plot.attr("transform","translate("+(margins.left+20)+",10)")
 
 }
-
-
 
 var getClassAverages = function(data)
 {
@@ -488,6 +524,8 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .attr("stroke-width",3)
     .attr("id",function(d){return "line"+penguin.picture})
     .on("mouseover", function(d) {
+        var theLength = d3.select(".svg2").selectAll(".line")
+        .size();
 
       d3.select(this)
         .transition()
@@ -499,6 +537,46 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     div .html(function(d) {return penguin.picture.slice(0,-10)})
         .style("left", (d3.event.pageX) + "px")
         .style("top", (d3.event.pageY - 28) + "px");
+
+      if (theLength<2)
+      {
+              var makeAreaPos = d3.area()
+                          .x(function(d,i){
+                            return xScale(i+1);
+                          })
+                          .y0(function(d){return yScale2(d);})
+                          .y1(function(d){return yScale2(0);})
+            var makeAreaNeg = d3.area()
+                        .x(function(d,i){
+                          return xScale(i+1);
+                        })
+                        .y1(function(d){return yScale2(d);})
+                        .y0(function(d){return yScale2(0);})
+
+          d3.select(".svg2").append("path")
+            .attr("transform","translate(85,"+(margins.top)+")")
+            .datum(listOfDifferences)
+            .attr("class","area")
+            .attr("d",makeAreaNeg)
+            .attr("fill",function(d){
+                return "red";
+              }
+            );
+            d3.select(".svg2").append("path")
+              .attr("transform","translate(85,"+(margins.top)+")")
+              .datum(listOfDifferences)
+              .attr("class","area")
+              .attr("d",makeAreaPos)
+              .attr("fill",function(d){
+                  return "blue";
+                }
+              );
+
+
+
+
+      }
+
     })
 .on("mouseout", function(d) {
   d3.select(this)
@@ -509,6 +587,16 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     div.transition()
         .duration(500)
         .style("opacity", 0);
+    var theLength = d3.select(".svg2").selectAll(".line")
+        .size();
+    if (theLength<2)
+    {
+      console.log("removing");
+      d3.select(".svg2").selectAll(".area").remove();
+    //  document.getElementsByClassName("area").remove();
+      //document.getElementsByClassName("area").remove();
+
+    }
 });
     //.attr("transform","translate(0,0)");
 
