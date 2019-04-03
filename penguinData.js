@@ -2,7 +2,19 @@ var data = d3.json("classData.json");
 data.then(function(data){
   //var dataThrough2 = getDataUpToDay(data,0);
   //console.log(dataThrough2);
-  var colors = d3.scaleOrdinal(d3.schemeDark2);
+
+
+  var penNames = []
+  data.forEach(function(d,i)
+  {
+    penNames.push(d.picture);
+  })
+  var colors = d3.scaleOrdinal()
+                  .domain(penNames)
+                  .range(["#b9936c","#82b74b","#034f84","#50394c", "#6b5b95","#878f99","#563f46","#7e4a35" ,"#587e76","#c83349","#454140","#FBBC05","#4285F4","#EA4335","#34A853","#F65314"
+                    ,"#7B0099","#FF9900","#E50914","#86f442"
+                    ,"#f4d942","#f21a98","#68284d"]);
+
   drawLineChart(data,colors);
   d3.select("body").selectAll("input").on("change", function(d,i){
     changeSVGS(data,this, colors);});
@@ -109,6 +121,7 @@ var drawLineChart = function(data,colors)
 
       d3.select("#ClassAvg")
         .attr("d",line);
+    d3.select(".svg").selectAll("path:not(#"+this.id+")").style("opacity",".1");
 
     d3.select(this)
       .transition()
@@ -125,6 +138,9 @@ var drawLineChart = function(data,colors)
     div.transition()
         .duration(500)
         .style("opacity", 0);
+
+        d3.select(".svg").selectAll("path:not(#"+this.id+")").style("opacity","1");
+
 
     d3.select(this)
       .transition()
@@ -214,7 +230,7 @@ var drawLineChart = function(data,colors)
           .attr("height",65)
           .attr("width",65)
           .attr("src", function(d,i){
-            console.log(d);
+          //  console.log(d);
             return "penguins/"+d.name;
           })
           .attr("alt","Penguin Picture")
@@ -245,39 +261,39 @@ var drawLineChart = function(data,colors)
           .attr("src", "penguins/class.png")
           .attr("alt","Class of Penguins")
           .on("click",function(d,i){
-
+            var checkedSize = d3.selectAll("input[type=checkbox]:checked").size();
+            if (checkedSize==0)
+            {
+              this.selected =false;
+            }
             if (this.selected==false || this.selected==undefined)
             {
-              console.log("false");
+              //console.log("false");
               this.selected=true;
               checkBoxList.forEach(function(d,i)
               {
                 d.checked=true;
-                console.log(d3.select("#"+d.name.slice(0,-10)))
+              //  console.log(d3.select("#"+d.name.slice(0,-10)))
                 changeSVGS(data,d,colors);
-                d3.select("#"+d.name.slice(0,-10)).style.borderColor=colors(d.name);
+                //console.log(d3.select("#"+d.name.slice(0,-10)));//d.name.slice(0,-10));
+                d3.select("#"+d.name.slice(0,-10)).style("border-color",colors(d.name));
 
               })
             }
 
             else{
-              console.log("true");
 
               this.selected=false;
               checkBoxList.forEach(function(d,i)
               {
                 d.checked=false;
                 changeSVGS(data,d,colors);
+                d3.select("#"+d.name.slice(0,-10)).style("border-color","black");
               })
-
             }
           })
 
-
-
-
-
-          var gradesDay15 = getDataUpToDay(data,16);
+          var gradesDay15 = getDataUpToDay(data,2);
         //  console.log(gradesDay15);
           d3.select("body").append("br");
 
@@ -448,8 +464,8 @@ var changeSVGS = function(data, checkbox,colors)
     drawLinesForPenguin(listOfClassAverages,peng,colors);
   }
   else {
-    document.getElementById("line"+peng.picture).remove();
-    document.getElementById("line"+peng.picture).remove();
+    d3.selectAll("#line"+peng.picture.slice(0,-10)).remove();
+
 
   }
 }
@@ -523,7 +539,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .attr("fill","none")
     .attr("stroke",function(d){return colors(penguin.picture)})
     .attr("stroke-width",3)
-    .attr("id",function(d){return "line"+penguin.picture})
+    .attr("id",function(d){return "line"+penguin.picture.slice(0,-10)})
     .on("mouseover", function(d) {
         var theLength = d3.select(".svg2").selectAll(".line")
         .size();
@@ -531,7 +547,19 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
       d3.select(this)
         .transition()
         .duration(200)
-        .attr("stroke-width",6)
+        .attr("stroke-width",6);
+
+      d3.select(".svg").select("#"+this.id)
+      .transition()
+      .duration(200)
+      .attr("stroke-width",6);
+
+
+      d3.select(".svg").selectAll("path:not(#"+this.id+")").style("opacity",".1");
+      d3.select(".svg2").selectAll("path:not(#"+this.id+")").style("opacity",".1");
+
+
+
     div.transition()
         .duration(200)
         .style("opacity", .9);
@@ -585,6 +613,14 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .duration(200)
     .attr("stroke-width",3)
 
+    d3.select(".svg").select("#"+this.id)
+    .transition()
+    .duration(200)
+    .attr("stroke-width",3);
+
+    d3.select(".svg").selectAll("path:not(#"+this.id+")").style("opacity","1");
+    d3.select(".svg2").selectAll("path:not(#"+this.id+")").style("opacity","1");
+
     div.transition()
         .duration(500)
         .style("opacity", 0);
@@ -594,9 +630,6 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     {
       console.log("removing");
       d3.select(".svg2").selectAll(".area").remove();
-    //  document.getElementsByClassName("area").remove();
-      //document.getElementsByClassName("area").remove();
-
     }
 });
     //.attr("transform","translate(0,0)");
@@ -611,13 +644,23 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
      .attr("fill","none")
      .attr("stroke",function(d){return colors(penguin.picture)})
      .attr("stroke-width",3)
-     .attr("id",function(d){return "line"+penguin.picture})
+     .attr("id",function(d){return "line"+penguin.picture.slice(0,-10)})
      .on("mouseover", function(d) {
 
        d3.select(this)
          .transition()
          .duration(200)
          .attr("stroke-width",6)
+
+         d3.select(".svg2").select("#"+this.id)
+         .transition()
+         .duration(200)
+         .attr("stroke-width",6);
+         d3.select(".svg").selectAll("path:not(#"+this.id+")").style("opacity",".1");
+
+         d3.select(".svg2").selectAll("path:not(#"+this.id+")").style("opacity",".1");
+
+
      div.transition()
          .duration(200)
          .style("opacity", .9);
@@ -629,6 +672,13 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
      div.transition()
          .duration(500)
          .style("opacity", 0);
+         d3.select(".svg2").select("#"+this.id)
+         .transition()
+         .duration(200)
+         .attr("stroke-width",3);
+         d3.select(".svg2").selectAll("path:not(#"+this.id+")").style("opacity","1");
+         d3.select(".svg").selectAll("path:not(#"+this.id+")").style("opacity","1");
+
 
          d3.select(this)
            .transition()
