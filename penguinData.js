@@ -29,6 +29,29 @@ data.then(function(data){
     .text("Go To")
     .attr("type","button")
     .on("click",function(d,i){changeToDay(data);});
+
+
+  d3.select("body").append("text")
+  .text("Click on a line on either line chart to display information for that penguin")
+  .classed("text", true)
+  .attr("id", "line1");
+  d3.select("body").append("text")
+  .text("")
+  .classed("text", true)
+  .attr("id", "line2");
+  d3.select("body").append("text")
+  .text("")
+  .classed("text", true)
+  .attr("id", "line3");
+  d3.select("body").append("text")
+  .text("")
+  .classed("text", true)
+  .attr("id", "line4");
+  d3.select("body").append("text")
+  .text("")
+  .classed("text", true)
+  .attr("id", "line5");
+
 }
 ,
 function(err){
@@ -219,7 +242,8 @@ var drawLineChart = function(data,colors)
 
 
         var checkboxes = d3.selectAll("input");
-        d3.select("body")
+
+        var images = d3.select("body")
         .append("g")
         .classed("pictures",true)
           .selectAll("img")
@@ -306,7 +330,7 @@ var drawLineChart = function(data,colors)
 
 
         var title = svg3.append("text")
-                .text("Cumulative Grade Distribution For Day")
+                .text("Cumulative Grade Distribution On Day 1")
                 .attr("x",((width/2)-30))
                 .attr("y", margins.top-5);
         var yLabel = svg3.append("text")
@@ -437,6 +461,9 @@ var updateScreen = function(index, data)
 
         plot.attr("transform","translate("+(margins.left+20)+",10)")
 
+        svg3.select("text")
+            .text("Cumulative Grade Distribution on Day "+(index));
+
 }
 
 var getClassAverages = function(data)
@@ -563,6 +590,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     div.transition()
         .duration(200)
         .style("opacity", .9);
+
     div .html(function(d) {return penguin.picture.slice(0,-10)})
         .style("left", (d3.event.pageX) + "px")
         .style("top", (d3.event.pageY - 28) + "px");
@@ -613,6 +641,8 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     .duration(200)
     .attr("stroke-width",3)
 
+
+
     d3.select(".svg").select("#"+this.id)
     .transition()
     .duration(200)
@@ -631,10 +661,20 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
       console.log("removing");
       d3.select(".svg2").selectAll(".area").remove();
     }
-});
+})
+.on("click", function(d)
+{
+  d3.select("#line1").text("Name: "+(penguin.picture.slice(0,-10)));
+  d3.select("#line2").text("Test 1: "+(getTestForPenguin(penguin,16)));
+  d3.select("#line3").text("Test 2: "+(penguin.test[1].grade/penguin.test[1].max));
+  d3.select("#line4").text("Final Test: "+(getFinalForPenguin(penguin,40)));
+  d3.select("#line5").text("Final Grade: "+(getPenguinGrade(penguin,40)));
+}
+
+);
     //.attr("transform","translate(0,0)");
 
-
+    console.log(listOfPenguinGrades);
    d3.select(".svg").append("path")
      .attr("transform","translate(80,"+(margins.top)+")")
      .datum(listOfPenguinGrades)
@@ -684,7 +724,16 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
            .transition()
            .duration(200)
            .attr("stroke-width",3)
- });
+ })
+.on("click", function(d)
+{
+ d3.select("#line1").text("Name: "+(penguin.picture.slice(0,-10)));
+ d3.select("#line2").text("Test 1: "+(getTestForPenguin(penguin,16)));
+ d3.select("#line3").text("Test 2: "+(penguin.test[1].grade/penguin.test[1].max));
+ d3.select("#line4").text("Final Test: "+(getFinalForPenguin(penguin,40)));
+ d3.select("#line5").text("Final Grade: "+(getPenguinGrade(penguin,40)));
+});
+
 
 
 
