@@ -30,30 +30,11 @@ data.then(function(data){
     .attr("type","button")
     .on("click",function(d,i){changeToDay(data);});
 
-  d3.select("body").append("text")
+  d3.select(".pictures").append("text")
   .text("Click on a line on either line chart to display information for that penguin")
   .classed("text", true)
   .attr("id", "line1");
 
-  d3.select("body").append("text")
-  .text("")
-  .classed("text", true)
-  .attr("id", "line2");
-
-  d3.select("body").append("text")
-  .text("")
-  .classed("text", true)
-  .attr("id", "line3");
-
-  d3.select("body").append("text")
-  .text("")
-  .classed("text", true)
-  .attr("id", "line4");
-
-  d3.select("body").append("text")
-  .text("")
-  .classed("text", true)
-  .attr("id", "line5");
 }
 ,
 function(err){
@@ -727,16 +708,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
            .duration(200)
            .attr("stroke-width",3)
  })
- .on("click", function(d)
- {
-   d3.select("#line1").text("Name: "+(penguin.picture.slice(0,-10)));
-   d3.select("#line2").text("Test 1: "+(getTestForPenguin(penguin,16)));
-   d3.select("#line3").text("Test 2: "+(penguin.test[1].grade/penguin.test[1].max));
-   d3.select("#line4").text("Final Test: "+(getFinalForPenguin(penguin,40)));
-   d3.select("#line5").text("Final Grade: "+(getPenguinGrade(penguin,40)));
- }
 
- );
 
 
 

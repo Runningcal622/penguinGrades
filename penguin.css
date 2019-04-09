@@ -41,12 +41,10 @@ div.tooltip {
     pointer-events: none;
 }
 
-#line1
+.pictures text
 {
-  position: relative;
-  left: 65%;
-  top: 50%;
-  position: fixed;
+  float:right;
+  clear: right;
 }
 
 #line2
