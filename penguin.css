@@ -40,3 +40,43 @@ div.tooltip {
     border-radius: 8px;
     pointer-events: none;
 }
+
+#line1
+{
+  position: relative;
+  left: 65%;
+  top: 50%;
+  position: fixed;
+}
+
+#line2
+{
+  position: relative;
+  left: 65%;
+  top: 54%;
+  position: fixed;
+}
+
+#line3
+{
+  position: relative;
+  left: 65%;
+  top: 58%;
+  position: fixed;
+}
+
+#line4
+{
+  position: relative;
+  left: 65%;
+  top: 62%;
+  position: fixed;
+}
+
+#line5
+{
+  position: relative;
+  left: 65%;
+  top: 66%;
+  position: fixed;
+}
