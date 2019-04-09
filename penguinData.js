@@ -219,7 +219,8 @@ var drawLineChart = function(data,colors)
 
 
         var checkboxes = d3.selectAll("input");
-        d3.select("body")
+
+        var images = d3.select("body")
         .append("g")
         .classed("pictures",true)
           .selectAll("img")
@@ -563,6 +564,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
     div.transition()
         .duration(200)
         .style("opacity", .9);
+
     div .html(function(d) {return penguin.picture.slice(0,-10)})
         .style("left", (d3.event.pageX) + "px")
         .style("top", (d3.event.pageY - 28) + "px");
@@ -634,7 +636,7 @@ var drawLinesForPenguin = function(listOfClassAverages,penguin,colors)
 });
     //.attr("transform","translate(0,0)");
 
-
+    console.log(listOfPenguinGrades);
    d3.select(".svg").append("path")
      .attr("transform","translate(80,"+(margins.top)+")")
      .datum(listOfPenguinGrades)
